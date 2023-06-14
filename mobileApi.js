@@ -34,53 +34,27 @@ app.get("/svr/mobiles", (req, res) => {
     let ram = req.query.ram;
     let rom = req.query.rom;
     let os = req.query.os;
-    let sql = "SELECT * FROM mobiles";
-    let params = [];
+    let params=[];
+    let sql = "SELECT * FROM mobiles WHERE 1=1";
+
+  if (brand) {
+    const brandArr = brand.split(",");
+    sql += ` AND brand IN (${brandArr.map((_, i) => `$${i + 1}`).join(",")})`;
+    params.push(...brandArr);
+  }
   
-    if (brand) {
-      let brandArr = brand.split(",");
-      sql += " WHERE brand IN ($1)";
-      params.push(brandArr);
-    }
+  if (ram) {
+    const ramArr = ram.split(",");
+    sql += ` AND ram IN (${ramArr.map((_, i) => `$${params.length + i + 1}`).join(",")})`;
+    params.push(...ramArr);
+  }
+
   
-    if (ram) {
-      let ramArr = ram.split(",");
-      if (params.length === 0) {
-        sql += " WHERE ram IN ($1)";
-      } else {
-        sql += " AND ram IN ($2)";
-      }
-      params.push(ramArr);
-    }
-  
-    if (rom) {
-      let romArr = rom.split(",");
-      if (params.length === 0) {
-        sql += " WHERE rom IN ($1)";
-      } else if (params.length === 1) { 
-        sql += " AND rom IN ($2)";
-      }
-       else {
-        sql += " AND rom IN ($3)";
-      }
-      params.push(romArr);
-    }
-  
-    if (os) {
-      let osArr = os.split(",");
-      if (params.length === 0) {
-        sql += " WHERE os IN ($1)";
-      }else if (params.length === 1) { 
-        sql += " AND os IN ($2)";
-      }
-      else if (params.length === 2) { 
-        sql += " AND os IN ($3)";
-      } 
-      else {
-        sql += " AND os IN ($4)";
-      }
-      params.push(osArr);
-    }
+  if (rom) {
+    const romArr = rom.split(",");
+    sql += ` AND rom IN (${romArr.map((_, i) => `$${params.length + i + 1}`).join(",")})`;
+    params.push(...romArr);
+  }
   
     client.query(sql, params, (err, result) => {
       if (err) res.status(404).send(err);
